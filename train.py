@@ -77,8 +77,8 @@ def train():
                 if step%args.log_step == 0:
                     duration = time.time() - start_time
                     start_time = time.time()
-                    format_str = ('%s: step %d, loss = %.2f, %.3f batch/sec')
-                    print(format_str % (datetime.datetime.now(), step, loss, args.log_step/duration))
+                    format_str = ('%s: step %d, loss = %.3e, %.3f samples/sec')
+                    print(format_str % (datetime.datetime.now(), step, loss, args.log_step*args.batch_size/duration))
 
                 step += 1
 

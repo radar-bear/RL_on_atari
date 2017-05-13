@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np
 import gym
 import datetime
+import time
 from reference import QFuncModel
 from utils import *
 from config import *
@@ -20,10 +21,12 @@ def train():
         model_training = QFuncModel(args)
 
         init_op = tf.group(tf.local_variables_initializer(),tf.global_variables_initializer())
+        saver = tf.train.Saver(var_list=model_training.variable_list())
 
         step = 0
         epoch = -1
         period = -1
+        start_time = time.time()
         with tf.Session() as sess:
             # initialize all variables
             sess.run(init_op)
@@ -48,6 +51,7 @@ def train():
                         period += 1
                         average_score = test_model(env, model, sess)
                         print("%s period %d: average score %.2f" % (datetime.datetime.now(), period, average_score))
+                        saver.save(sess, args.ckpt_dir, global_step=step)
 
                 # every step fetch a batch from pool
                 s, r, a, s_next, isEnd = pool.next_batch(args.batch_size)
@@ -58,10 +62,18 @@ def train():
                         for i in range(args.batch_size)]
 
                 # train the model_training
-                sess.run(model_training.train_op,
-                    feed_dict={ model_training.s:s,
-                                model_training.a:a,
-                                model_training.y:y } )
+                # NOTE: in reinforcement learning, the loss value won't always decrease
+                # but in general, it should be zero at last
+                loss, _ = sess.run([model_training.loss, model_training.train_op],
+                            feed_dict={ model_training.s:s,
+                                        model_training.a:a,
+                                        model_training.y:y } )
+
+                if step%args.log_step == 0:
+                    duration = time.time() - start_time
+                    start_time = time.time()
+                    format_str = ('%s: step %d, loss = %.2f, %.3f batch/sec')
+                    print(format_str % (datetime.datetime.now(), step, loss, args.log_step/duration))
 
                 step += 1
 

@@ -2,6 +2,7 @@ import cv2
 from config import *
 import numpy as np
 import gym
+from gym import wrappers
 
 class data_pool():
     def __init__(self, name, max_len, look_forward_step=4):
@@ -207,6 +208,8 @@ def test_model(env, model, sess):
             # play one step
             s_next, reward, end_flag, _ = env.step(action)
             s_next = rgb2gray(resize(s_next))
+
+
             total_score += reward
 
             # is game over
@@ -223,6 +226,38 @@ def test_model(env, model, sess):
     average_score = total_score/count
 
     return average_score
+
+def record_play(env, model, sess, directory):
+    '''
+    The function will wrap the env, so the game screen will be recorded in a mp4 file. If you need to use the checkpoint, please restore the model before you call this function
+    All files will be stored in dir
+    '''
+
+    game_keymap = keymap[args.game]
+    # wrap the env
+    env = wrappers.Monitor(env, directory, force=True)
+    # game starts
+    s = env.reset()
+    s = rgb2gray(resize(s))
+    # initialize the s_series
+    s_series = []
+    for _ in range(args.look_forward_step):
+        s_series.append(s)
+
+    isEnd = False
+    while not isEnd:
+        # get the action_index from model
+        action_index = model.play(sess, np.transpose(np.array(s_series), [1,2,0]))
+        action = game_keymap[action_index]
+
+        # play one step
+        s_next, reward, isEnd, _ = env.step(action)
+        s_next = rgb2gray(resize(s_next))
+
+        # update the s_series
+        s = s_next
+        s_series.pop()
+        s_series.insert(0, s)
 
 
 

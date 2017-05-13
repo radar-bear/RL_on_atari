@@ -1,7 +1,9 @@
 import tensorflow as tf
 import numpy as np
 
-
+def _activation_summary(x):
+    tf.summary.histogram(x.op.name+'/activations', x)
+    tf.summary.scalar(x.op.name+'/sparsity', x)
 class QFuncModel():
     '''
     QFuncModel defines a reference for Q-network
@@ -121,10 +123,10 @@ class QFuncModel():
         # softmax readout
         self.softmax = tf.nn.softmax(self.readout)
 
-        # define the cost function
+        # define the loss function
         readout_action = tf.reduce_sum(tf.multiply(self.readout, self.a), reduction_indices=1)
-        cost = tf.reduce_mean(tf.square(self.y - readout_action))
-        self.train_op = tf.train.AdamOptimizer(args.learning_rate).minimize(cost)
+        self.loss = tf.reduce_mean(tf.square(self.y - readout_action))
+        self.train_op = tf.train.AdamOptimizer(args.learning_rate).minimize(self.loss)
 
     def variable_list(self):
         return [self.W_conv1, self.W_conv2, self.W_conv3, self.W_fc1, self.W_fc2,

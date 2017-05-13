@@ -234,6 +234,10 @@ def record_play(env, model, sess, directory):
     '''
 
     game_keymap = keymap[args.game]
+    # prepare the directory
+    if tf.gfile.Exists(args.record_dir):
+        tf.gfile.DeleteRecursively(args.record_dir)
+    tf.gfile.MakeDirs(args.record_dir)
     # wrap the env
     env = wrappers.Monitor(env, directory, force=True)
     # game starts

@@ -19,9 +19,14 @@ def train():
         # model_training is the model to train
         # model is the model to calculate target Q-value
         model_training = QFuncModel(args)
-
+        # init op
         init_op = tf.group(tf.local_variables_initializer(),tf.global_variables_initializer())
-        saver = tf.train.Saver(var_list=model_training.variable_list())
+        # prepare the directory and saver for checkpoint(ckpt)
+        if tf.gfile.Exists(args.ckpt_dir):
+            tf.gfile.DeleteRecursively(args.ckpt_dir)
+        tf.gfile.MakeDirs(args.ckpt_dir)
+        # only save the model, NOT the model_training
+        saver = tf.train.Saver(var_list=model.variable_list())
 
         step = 0
         epoch = -1
@@ -51,7 +56,7 @@ def train():
                         period += 1
                         average_score = test_model(env, model, sess)
                         print("%s period %d: average score %.2f" % (datetime.datetime.now(), period, average_score))
-                        saver.save(sess, args.ckpt_dir, global_step=step)
+                        saver.save(sess, args.ckpt_dir+'/Q-model', global_step=step)
 
                 # every step fetch a batch from pool
                 s, r, a, s_next, isEnd = pool.next_batch(args.batch_size)

@@ -3,6 +3,7 @@ from config import *
 import numpy as np
 import gym
 from gym import wrappers
+import tensorflow as tf
 
 class data_pool():
     def __init__(self, name, max_len, look_forward_step=4):
@@ -262,6 +263,28 @@ def record_play(env, model, sess, directory):
         s = s_next
         s_series.pop()
         s_series.insert(0, s)
+
+def restore_from(sess, saver, ckpt_dir, backNum=0):
+    '''
+    this function will read the ckpt_dir and restore the variables from the checkpoint automatically according to saver, which contains a dictionary for all variables to restore
+
+    Args:
+        sess -> the session to restore
+        saver -> the variables to restore, generally the default saver
+        ckpt_dir -> the parent directory of ckpt files
+        backNum -> which history record you wanna roll back, 0 for the newest
+
+    Outs:
+        global_step -> the global step when the ckpt was made
+    '''
+    ckpt = tf.train.get_checkpoint_state(ckpt_dir)
+    if len(ckpt.all_model_checkpoint_paths)<backNum+1:
+        print("Back too many epochs")
+        return -1
+    if ckpt and ckpt.model_checkpoint_path:
+        saver.restore(sess, ckpt.all_model_checkpoint_paths[backNum])
+        global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
+    return global_step
 
 
 

@@ -68,3 +68,6 @@ args = parser.parse_args()
 
 # game conf
 keymap = {'Breakout-v0': [1, 4, 5]}
+
+# additional parameters
+args.actions = len(keymap[args.game])

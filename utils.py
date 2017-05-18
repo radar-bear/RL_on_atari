@@ -105,7 +105,7 @@ def rgb2gray(image):
 def resize(image):
     return cv2.resize(image, (args.resize_width, args.resize_height))
 
-def generate_samples(env, pool, sample_num, model, sess, epsilon):
+def generate_samples(env, pool, sample_num, model, sess):
     '''
     This function will interact with env and insert several new samples
     into the pool
@@ -129,6 +129,9 @@ def generate_samples(env, pool, sample_num, model, sess, epsilon):
     game_keymap = keymap[args.game]
     # count sample num
     count = 0
+    # total reward
+    total_reward = 0.0
+    game_num = 0
     # reset the game
     s = env.reset()
     s = rgb2gray(resize(s))
@@ -161,10 +164,13 @@ def generate_samples(env, pool, sample_num, model, sess, epsilon):
         # make one-hot action
         one_hot_action = np.zeros(args.actions)
         one_hot_action[action_index] = 1.0
+        # add reward to total_reward
+        total_reward += reward
         # insert new record
         pool.in_pool([s, reward, one_hot_action, end_flag])
         # if game over, reset the game
         if end_flag:
+            game_num += 1
             s = env.reset()
             s = rgb2gray(resize(s))
             # reset the s_series
@@ -178,6 +184,9 @@ def generate_samples(env, pool, sample_num, model, sess, epsilon):
             s_series.insert(0, s)
 
         count += 1
+        args.epsilon -= args.unit_epsilon
+
+    print("new samples average score %.2f" %(total_reward/game_num))
 
 def test_model(env, model, sess):
     '''
@@ -290,6 +299,36 @@ def restore_from(sess, saver, ckpt_dir, backNum=0):
         global_step = ckpt.model_checkpoint_path.split('/')[-1].split('-')[-1]
     return global_step
 
+def show_action_play(env, model, sess):
+    '''
+    Play the game once and print the actions
+    '''
+
+    game_keymap = keymap[args.game]
+
+    # game starts
+    s = env.reset()
+    s = rgb2gray(resize(s))
+    # initialize the s_series
+    s_series = []
+    for _ in range(args.look_forward_step):
+        s_series.append(s)
+
+    isEnd = False
+    while not isEnd:
+        # get the action_index from model
+        action_index = model.play(sess, np.transpose(np.array(s_series), [1,2,0]))
+        action = game_keymap[action_index]
+        print(action)
+
+        # play one step
+        s_next, reward, isEnd, _ = env.step(action)
+        s_next = rgb2gray(resize(s_next))
+
+        # update the s_series
+        s = s_next
+        s_series.pop()
+        s_series.insert(0, s)
 
 
 

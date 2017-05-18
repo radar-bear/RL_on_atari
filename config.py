@@ -57,7 +57,7 @@ parser.add_argument('--step_per_epoch', type=int, default=500,
                     help='how many steps will an epoch last')
 parser.add_argument('--batch_size', type=int, default=32,
                     help='minibatch size')
-parser.add_argument('--log_step', type=int, default=50,
+parser.add_argument('--log_step', type=int, default=150,
                     help='steps to print log of loss value')
 
 # data pool parameters

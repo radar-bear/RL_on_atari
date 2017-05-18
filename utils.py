@@ -139,8 +139,12 @@ def generate_samples(env, pool, sample_num, model, sess, epsilon):
     while count<sample_num:
         # calculate probabilities for each actions
         # use the transposed s_series
-        p = model.get_softmax(sess, np.transpose(np.array(s_series), [1,2,0]))
-        # Softmax action selection
+        # p is the probability for exploration new actions
+        if args.enable_softmax_exploration:
+            p = model.get_softmax(sess, np.transpose(np.array(s_series), [1,2,0]))
+        else:
+            p = np.ones(args.actions)/args.actions
+        # action selection
         # greater epsilon means more uncertainty and more exploration
         if np.random.sample()<args.epsilon:
             # choose an action from the keymap under probabilities p

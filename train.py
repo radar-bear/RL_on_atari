@@ -11,7 +11,7 @@ def train():
     # set initial environment
     env = gym.make(args.game)
     pool = data_pool('default_pool', args.pool_max_len)
-    args.actions = len(keymap[args.game])
+    final_epsilon = 0.5
 
     with tf.Graph().as_default():
 
@@ -54,8 +54,12 @@ def train():
                     if epoch%args.epoch_per_period == 0:
 
                         period += 1
+                        # decrease the epsilon
+                        args.epsilon -= 0.1*(args.epsilon - final_epsilon)
+                        # test the model
                         average_score = test_model(env, model, sess)
                         print("%s period %d: average score %.2f" % (datetime.datetime.now(), period, average_score))
+                        print("epsilon changed to %.2f" %args.epsilon)
                         saver.save(sess, args.ckpt_dir+'/Q-model', global_step=step)
 
                 # every step fetch a batch from pool

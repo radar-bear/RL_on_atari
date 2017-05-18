@@ -27,8 +27,10 @@ parser.add_argument('--game', type=str, default='Breakout-v0',
                     help='Name of the atari game to play. Full list here: https://gym.openai.com/envs#atari')
 parser.add_argument('--gamma', type=float, default=0.99,
                     help='decay rate of past observations')
-parser.add_argument('--epsilon', type=float, default=0.5,
+parser.add_argument('--epsilon', type=float, default=0.99,
                     help='the probability to try a random action but not the best action')
+parser.add_argument('--enable_softmax_exploration', type=bool, default=False,
+                    help='use softmax function to exploration or not')
 parser.add_argument('--resize_width', type=int, default=80,
                     help='')
 parser.add_argument('--resize_height', type=int, default=80,
@@ -43,11 +45,11 @@ parser.add_argument('--period_num', type=int, default=1000,
                     help='total period number')
 parser.add_argument('--play_num', type=int, default=50,
                     help='play game several times to test the model')
-parser.add_argument('--epoch_per_period', type=int, default=50,
+parser.add_argument('--epoch_per_period', type=int, default=20,
                     help='epoch per period')
 parser.add_argument('--sample_per_epoch', type=int, default=3000,
                     help='generate how many new records when a new epoch begins')
-parser.add_argument('--step_per_epoch', type=int, default=200,
+parser.add_argument('--step_per_epoch', type=int, default=500,
                     help='how many steps will an epoch last')
 parser.add_argument('--batch_size', type=int, default=32,
                     help='minibatch size')

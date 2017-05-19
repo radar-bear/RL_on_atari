@@ -148,6 +148,7 @@ class QFuncModel():
 
     def play(self, sess, s):
         Q_value = sess.run(self.readout, feed_dict = {self.s:[s]})
+        print("Q-value:", Q_value)
         # np.argmax will flat the high dim array into a list
         # and return the index of the max element
         # Q_value has shape [1, 3] here

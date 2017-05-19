@@ -184,7 +184,8 @@ def generate_samples(env, pool, sample_num, model, sess):
             s_series.insert(0, s)
 
         count += 1
-        args.epsilon -= args.unit_epsilon
+        if args.epsilon>args.final_epsilon:
+            args.epsilon -= args.unit_epsilon
 
     print("new samples average score %.2f" %(total_reward/game_num))
 

@@ -1,2 +1,6 @@
-model_checkpoint_path: "/Users/leimingda/Documents/code/tensorflow/reinforcement_learning/ckpt/Q-model-0"
-all_model_checkpoint_paths: "/Users/leimingda/Documents/code/tensorflow/reinforcement_learning/ckpt/Q-model-0"
+model_checkpoint_path: "/home/mlgroup/RL_on_atari/ckpt/Q-model-330000"
+all_model_checkpoint_paths: "/home/mlgroup/RL_on_atari/ckpt/Q-model-290000"
+all_model_checkpoint_paths: "/home/mlgroup/RL_on_atari/ckpt/Q-model-300000"
+all_model_checkpoint_paths: "/home/mlgroup/RL_on_atari/ckpt/Q-model-310000"
+all_model_checkpoint_paths: "/home/mlgroup/RL_on_atari/ckpt/Q-model-320000"
+all_model_checkpoint_paths: "/home/mlgroup/RL_on_atari/ckpt/Q-model-330000"

@@ -1,6 +1,0 @@
-model_checkpoint_path: "/home/mlgroup/RL_on_atari/ckpt/Q-model-330000"
-all_model_checkpoint_paths: "/home/mlgroup/RL_on_atari/ckpt/Q-model-290000"
-all_model_checkpoint_paths: "/home/mlgroup/RL_on_atari/ckpt/Q-model-300000"
-all_model_checkpoint_paths: "/home/mlgroup/RL_on_atari/ckpt/Q-model-310000"
-all_model_checkpoint_paths: "/home/mlgroup/RL_on_atari/ckpt/Q-model-320000"
-all_model_checkpoint_paths: "/home/mlgroup/RL_on_atari/ckpt/Q-model-330000"

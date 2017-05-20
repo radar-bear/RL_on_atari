@@ -3,21 +3,28 @@ import numpy as np
 import gym
 import datetime
 import time
+import threading
 from reference import QFuncModel
 from utils import *
 from config import *
 
-def train():
-    # set initial environment
-    env = gym.make(args.game)
-    pool = data_pool('default_pool', args.pool_max_len)
+def sample_final_epsilon():
+    """
+    Sample a final epsilon value to anneal towards from a distribution.
+    These values are specified in section 5.1 of http://arxiv.org/pdf/1602.01783v1.pdf
+    """
+    final_epsilons = np.array([.1,.01,.5])
+    probabilities = np.array([0.4,0.3,0.3])
+    return np.random.choice(final_epsilons, 1, p=list(probabilities))[0]
 
+def train():
+    # the time that begin training
+    train_begin = datetime.datetime.now()
+    pool = data_pool(args.pool_max_len)
     with tf.Graph().as_default():
 
         model = QFuncModel(args)
-        # model_training is the model to train
-        # model is the model to calculate target Q-value
-        model_training = QFuncModel(args)
+        model_back = QFuncModel(args)
         # init op
         init_op = tf.group(tf.local_variables_initializer(),tf.global_variables_initializer())
         # prepare the directory and saver for checkpoint(ckpt)
@@ -29,57 +36,51 @@ def train():
 
         step = 0
         epoch = -1
-        period = -1
         start_time = time.time()
         with tf.Session() as sess:
             # initialize all variables
             sess.run(init_op)
 
+            # config threadings for enqueue data_pool
+            epsilon_list = [0.5,0.5,0.1,0.1,0.01,0.01]
+            threads = [threading.Thread(target=generate_samples,
+                                        args=(pool, model_back, sess, epsilon))
+                        for epsilon in epsilon_list]
+            for t in threads:
+                t.start()
+            print("threads start...")
             # a new step starts
-            while period < args.period_num:
+            while epoch < args.epoch_num:
 
-                # wether a new epoch begin
+                # save model when a new epoch begin
                 if step%args.step_per_epoch == 0:
-
                     # update the epoch num
                     epoch += 1
-                    # update the sample pool every epoch
-                    generate_samples(env, pool, args.sample_per_epoch, model, sess)
-                    print("%s epoch %d: reload sample pool, %d new records generated" % (datetime.datetime.now(), epoch, args.sample_per_epoch))
-                    # update the model every epoch
-                    model.copy(sess, model_training)
-
-                    # wether a new period begin
-                    if epoch%args.epoch_per_period == 0:
-
-                        period += 1
-                        # test the model
-                        # average_score = test_model(env, model, sess)
-                        # print("%s period %d: average score %.2f" % (datetime.datetime.now(), period, average_score))
-                        print("epsilon changed to %.2f" %args.epsilon)
-                        saver.save(sess, args.ckpt_dir+'/Q-model', global_step=step)
+                    saver.save(sess, args.ckpt_dir+'/Q-model', global_step=step)
 
                 # every step fetch a batch from pool
-                s, r, a, s_next, isEnd = pool.next_batch(args.batch_size)
-
+                s, r, a, s_next, end_flag = pool.dequeue()
                 # calculate the target Q-value using model
                 # note: don't using model_training
-                y = [r[i] if isEnd[i] else r[i]+args.gamma*model.maxQ(sess, s_next[i])
-                        for i in range(args.batch_size)]
+                y = [r[i] if end_flag[i] else r[i]+args.gamma*model.maxQ(sess, s_next[i]) for i in range(len(s))]
 
-                # train the model_training
+                # train the model_trainingfdc
                 # NOTE: in reinforcement learning, the loss value won't always decrease
                 # but in general, it should be zero at last
-                loss, _ = sess.run([model_training.loss, model_training.train_op],
-                            feed_dict={ model_training.s:s,
-                                        model_training.a:a,
-                                        model_training.y:y } )
+                loss, _ = sess.run([model.loss, model.train_op],
+                            feed_dict={ model.s:s,
+                                        model.a:a,
+                                        model.y:y } )
+                # sess.run([model.train_op],
+                #             feed_dict={ model.s:s,
+                #                         model.a:a,
+                #                         model.y:y } )
 
-                if step%args.log_step == 0:
+                if step%args.loss_log_step == 0:
                     duration = time.time() - start_time
                     start_time = time.time()
-                    format_str = ('%s: step %d, loss = %.3e, %.3f samples/sec')
-                    print(format_str % (datetime.datetime.now(), step, loss, args.log_step*args.batch_size/duration))
+                    format_str = ('%s: step %d, loss = %.3e, %.3f frames/sec')
+                    print(format_str % (datetime.datetime.now()-train_begin, step, loss, args.loss_log_step*args.batch_size/duration))
 
                 step += 1
 

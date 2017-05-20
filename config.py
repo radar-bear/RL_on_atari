@@ -41,28 +41,28 @@ parser.add_argument('--resize_height', type=int, default=80,
                     help='')
 parser.add_argument('--look_forward_step', type=int, default=4,
                     help='how many frames in a single input')
-parser.add_argument('--learning_rate', type=float, default=0.01,
+parser.add_argument('--learning_rate', type=float, default=1e-5,
                     help='learning rate')
 
 # periods parameter
-parser.add_argument('--period_num', type=int, default=1000,
-                    help='total period number')
 parser.add_argument('--play_num', type=int, default=50,
                     help='play game several times to test the model')
-parser.add_argument('--epoch_per_period', type=int, default=20,
-                    help='epoch per period')
-parser.add_argument('--sample_per_epoch', type=int, default=5000,
-                    help='generate how many new records when a new epoch begins')
+parser.add_argument('--epoch_num', type=int, default=10000,
+                    help='epoch num')
 parser.add_argument('--step_per_epoch', type=int, default=500,
                     help='how many steps will an epoch last')
 parser.add_argument('--batch_size', type=int, default=32,
                     help='minibatch size')
-parser.add_argument('--log_step', type=int, default=150,
+parser.add_argument('--loss_log_step', type=int, default=150,
                     help='steps to print log of loss value')
+parser.add_argument('--generator_log_step', type=int, default=20,
+                    help='steps to print log of sample generator')
 
 # data pool parameters
-parser.add_argument('--pool_max_len', type=int, default=5000,
+parser.add_argument('--pool_max_len', type=int, default=100,
                     help='the max record in a sample pool')
+parser.add_argument('--thread_num', type=int, default=4,
+                    help='threads to enqueue the pool')
 
 # dir parameters
 parser.add_argument('--ckpt_dir', type=str, default=cwd+'/ckpt',
@@ -77,5 +77,3 @@ keymap = {'Breakout-v0': [1, 4, 5]}
 
 # additional parameters
 args.actions = len(keymap[args.game])
-args.epsilon = args.initial_epsilon
-args.unit_epsilon = (args.initial_epsilon-args.final_epsilon)/args.epsilon_anneal_frames

@@ -24,7 +24,6 @@ def train():
     with tf.Graph().as_default():
 
         model = QFuncModel(args)
-        model_back = QFuncModel(args)
         # init op
         init_op = tf.group(tf.local_variables_initializer(),tf.global_variables_initializer())
         # prepare the directory and saver for checkpoint(ckpt)
@@ -42,9 +41,10 @@ def train():
             sess.run(init_op)
 
             # config threadings for enqueue data_pool
+            async_lock = threading.Lock()
             epsilon_list = [0.5,0.5,0.1,0.1,0.01,0.01]
             threads = [threading.Thread(target=generate_samples,
-                                        args=(pool, model_back, sess, epsilon))
+                                        args=(pool, model, sess, epsilon))
                         for epsilon in epsilon_list]
             for t in threads:
                 t.start()

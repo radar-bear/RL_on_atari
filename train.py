@@ -44,8 +44,8 @@ def train():
             # config threadings for enqueue data_pool
             epsilon_list = [0.5,0.5,0.1,0.1,0.1,0.01,0.01]
             threads = [threading.Thread(target=generate_samples,
-                                        args=(pool, model, sess, epsilon))
-                        for epsilon in epsilon_list]
+                                        args=(pool, model, sess, sample_final_epsilon()))
+                        for _ in range(args.thread_num)]
             for t in threads:
                 t.start()
             print("threads start...")

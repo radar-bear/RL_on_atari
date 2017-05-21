@@ -31,7 +31,7 @@ parser.add_argument('--initial_epsilon', type=float, default=0.99,
                     help='the probability to try a random action but not the best action')
 parser.add_argument('--final_epsilon', type=float, default=0.1,
                     help='epsilon will be annealed to this value')
-parser.add_argument('--epsilon_anneal_frames', type=int, default=1000000,
+parser.add_argument('--epsilon_anneal_frames', type=int, default=4000000,
                     help='the epsilon will anneal to final in these frames')
 parser.add_argument('--enable_softmax_exploration', type=bool, default=False,
                     help='use softmax function to exploration or not')
@@ -63,7 +63,7 @@ parser.add_argument('--generator_log_step', type=int, default=20,
 # data pool parameters
 parser.add_argument('--pool_max_len', type=int, default=100,
                     help='the max record in a sample pool')
-parser.add_argument('--thread_num', type=int, default=4,
+parser.add_argument('--thread_num', type=int, default=16,
                     help='threads to enqueue the pool')
 
 # dir parameters

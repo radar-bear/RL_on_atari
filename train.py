@@ -24,6 +24,7 @@ def train():
     with tf.Graph().as_default():
 
         model = QFuncModel(args)
+        model_target = QFuncModel(args)
         # init op
         init_op = tf.group(tf.local_variables_initializer(),tf.global_variables_initializer())
         # prepare the directory and saver for checkpoint(ckpt)
@@ -31,7 +32,7 @@ def train():
             tf.gfile.DeleteRecursively(args.ckpt_dir)
         tf.gfile.MakeDirs(args.ckpt_dir)
         # only save the model, NOT the model_training
-        saver = tf.train.Saver(var_list=model.variable_list())
+        saver = tf.train.Saver(var_list=model_target.variable_list())
 
         step = 0
         epoch = -1
@@ -39,10 +40,9 @@ def train():
         with tf.Session() as sess:
             # initialize all variables
             sess.run(init_op)
-
+            model_target.copy(sess, model)
             # config threadings for enqueue data_pool
-            async_lock = threading.Lock()
-            epsilon_list = [0.5,0.5,0.1,0.1,0.01,0.01]
+            epsilon_list = [0.5,0.5,0.1,0.1,0.1,0.01,0.01]
             threads = [threading.Thread(target=generate_samples,
                                         args=(pool, model, sess, epsilon))
                         for epsilon in epsilon_list]
@@ -56,29 +56,37 @@ def train():
                 if step%args.step_per_epoch == 0:
                     # update the epoch num
                     epoch += 1
-                    saver.save(sess, args.ckpt_dir+'/Q-model', global_step=step)
+                    model_target.copy(sess, model)
+                    print("==========")
+                    print("COPY MODEL")
+                    print("==========")
+
+                    if epoch%args.epoch_per_save == 0:
+                        saver.save(sess, args.ckpt_dir+'/Q-model', global_step=step)
+                        print("================")
+                        print("CHECKPOINT SAVED")
+                        print("================")
 
                 # every step fetch a batch from pool
                 s, r, a, s_next, end_flag = pool.dequeue()
                 # calculate the target Q-value using model
                 # note: don't using model_training
-                y = [r[i] if end_flag[i] else r[i]+args.gamma*model.maxQ(sess, s_next[i]) for i in range(len(s))]
+                y = [r[i] if end_flag[i] else r[i]+args.gamma*model_target.maxQ(sess, s_next[i]) for i in range(len(s))]
 
                 # train the model_trainingfdc
                 # NOTE: in reinforcement learning, the loss value won't always decrease
                 # but in general, it should be zero at last
-                loss, _ = sess.run([model.loss, model.train_op],
-                            feed_dict={ model.s:s,
-                                        model.a:a,
-                                        model.y:y } )
-                # sess.run([model.train_op],
-                #             feed_dict={ model.s:s,
-                #                         model.a:a,
-                #                         model.y:y } )
-
+                sess.run(model.train_op,feed_dict={ model.s:s,
+                                                    model.a:a,
+                                                    model.y:y } )
+                # print trivial log
                 if step%args.loss_log_step == 0:
                     duration = time.time() - start_time
                     start_time = time.time()
+                    loss = sess.run(model.loss,
+                            feed_dict={ model.s:s,
+                                        model.a:a,
+                                        model.y:y } )
                     format_str = ('%s: step %d, loss = %.3e, %.3f frames/sec')
                     print(format_str % (datetime.datetime.now()-train_begin, step, loss, args.loss_log_step*args.batch_size/duration))
 

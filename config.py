@@ -47,13 +47,15 @@ parser.add_argument('--learning_rate', type=float, default=1e-5,
 # periods parameter
 parser.add_argument('--play_num', type=int, default=50,
                     help='play game several times to test the model')
-parser.add_argument('--epoch_num', type=int, default=10000,
+parser.add_argument('--epoch_num', type=int, default=1000,
                     help='epoch num')
-parser.add_argument('--step_per_epoch', type=int, default=500,
-                    help='how many steps will an epoch last')
+parser.add_argument('--epoch_per_save', type=int, default=10,
+                    help='how many epoches between two checkpoint')
+parser.add_argument('--step_per_epoch', type=int, default=10000,
+                    help='how many steps an epoch contain')
 parser.add_argument('--batch_size', type=int, default=32,
                     help='minibatch size')
-parser.add_argument('--loss_log_step', type=int, default=150,
+parser.add_argument('--loss_log_step', type=int, default=200,
                     help='steps to print log of loss value')
 parser.add_argument('--generator_log_step', type=int, default=20,
                     help='steps to print log of sample generator')

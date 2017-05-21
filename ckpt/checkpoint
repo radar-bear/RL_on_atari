@@ -1,4 +1,2 @@
-model_checkpoint_path: "/Users/leimingda/Documents/code/tensorflow/reinforcement_learning/ckpt/Q-model-1000"
+model_checkpoint_path: "/Users/leimingda/Documents/code/tensorflow/reinforcement_learning/ckpt/Q-model-0"
 all_model_checkpoint_paths: "/Users/leimingda/Documents/code/tensorflow/reinforcement_learning/ckpt/Q-model-0"
-all_model_checkpoint_paths: "/Users/leimingda/Documents/code/tensorflow/reinforcement_learning/ckpt/Q-model-500"
-all_model_checkpoint_paths: "/Users/leimingda/Documents/code/tensorflow/reinforcement_learning/ckpt/Q-model-1000"
